@@ -1,0 +1,48 @@
+import clr
+import System
+import sys
+
+sys.path.append(r'C:\Program Files (x86)\IronPython 2.7\Lib')
+
+clr.AddReference('ProtoGeometry')
+from Autodesk.DesignScript.Geometry import *
+
+#Import the Revit API
+clr.AddReference('RevitAPI')
+import Autodesk
+from Autodesk.Revit.DB import *
+
+#Import generic collections
+clr.AddReference('System')
+from System.Collections.Generic import *
+
+#Import DocumentManager and TransactionManager
+clr.AddReference('RevitServices')
+import RevitServices
+from RevitServices.Persistence import DocumentManager
+from RevitServices.Transactions import TransactionManager
+
+#Import ToDSType(bool) extensions method
+clr.AddReference('RevitNodes')
+import Revit
+clr.ImportExtensions(Revit.Elements)
+clr.ImportExtensions(Revit.GeometryConversion)
+
+#Reference the active Document and application
+doc = DocumentManager.Instance.CurrentDBDocument
+uiapp = DocumentManager.Instance.CurrentUIApplication
+app = uiapp.Application
+#---###Definitions###---#
+
+def tolst(x):
+	if isinstance(x, list): return x
+	else: return [x]
+
+#---###Start scripting here:###---#
+
+#Transaction start:
+#TransactionManager.Instance.EnsureInTransaction(doc)
+#Transaction end:
+#TransactionManager.Instance.TransactionTaskDone()
+
+OUT = 
