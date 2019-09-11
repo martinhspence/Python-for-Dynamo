@@ -1,0 +1,71 @@
+#By Martin Spence (martinspence84@gmail.com)
+import clr
+import System
+
+#Import the Revit API
+clr.AddReference('RevitAPI')
+import Autodesk
+from Autodesk.Revit.DB import *
+from Autodesk.Revit.Creation import *
+
+#Import generic collections
+clr.AddReference('System')
+from System.Collections.Generic import *
+
+#Import DocumentManager and TransactionManager
+clr.AddReference('RevitServices')
+import RevitServices
+from RevitServices.Persistence import DocumentManager
+from RevitServices.Transactions import TransactionManager
+
+#Import ToDSType(bool) extensions method
+clr.AddReference('RevitNodes')
+import Revit
+clr.ImportExtensions(Revit.Elements)
+clr.ImportExtensions(Revit.GeometryConversion)
+
+#Reference the active Document and application
+doc = DocumentManager.Instance.CurrentDBDocument
+uiapp = DocumentManager.Instance.CurrentUIApplication
+app = uiapp.Application
+
+#Start scripting here:
+rooms = FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Rooms).ToElements()
+
+#Get the room name for later setting the 3D text family value
+roomName = []
+for name in rooms:
+    roomName.append(name.get_Parameter(BuiltInParameter.ROOM_NAME).AsString())
+
+#Get the rooms location
+loc = []
+for i in rooms:
+     loc.append(i.Location.Point)
+
+insertionPoint = []
+for point in loc:
+     insertionPoint.append(XYZ(point.X, point.Y, point.Z))
+    
+#Get the family symbol(Type) which we want to place
+genCol = FilteredElementCollector(doc).OfClass(FamilySymbol).OfCategory(BuiltInCategory.OST_GenericModel).ToElements()
+
+#Transaction start:
+TransactionManager.Instance.EnsureInTransaction(doc)
+
+#Get the modelText family symbol
+newFam = []
+modelText = []
+for item in genCol:
+    if item.FamilyName == 'ModelText':
+        famSymbol = item
+        if famSymbol.IsActive != True:
+            famSymbol.Activate()
+            
+        for i in insertionPoint:
+            newFam.append(doc.Create.NewFamilyInstance(i, famSymbol, Autodesk.Revit.DB.Structure.StructuralType.NonStructural))
+
+#Transaction end:
+TransactionManager.Instance.TransactionTaskDone()
+        
+#Assign your output to the OUT variable.
+OUT = newFam, roomName
