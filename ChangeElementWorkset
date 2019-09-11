@@ -1,0 +1,33 @@
+import RevitServices
+from RevitServices.Persistence import DocumentManager
+from RevitServices.Transactions import TransactionManager
+
+#Reference the active Document and application
+doc = DocumentManager.Instance.CurrentDBDocument
+
+#Start scripting here:
+
+elements = UnwrapElement(IN[0])
+ws = UnwrapElement(IN[1])
+
+hiddenElems = []
+notChanged = []
+
+view = doc.ActiveView
+
+#Transaction start:
+TransactionManager.Instance.EnsureInTransaction(doc)
+
+for i in elements:
+	if i.IsHidden(view) == True:
+		param = i.get_Parameter(BuiltInParameter.ELEM_PARTITION_PARAM)
+		try:
+			param.Set(ws.Id)
+			hiddenElems.append(i)
+		except:
+			notChanged.append(i)
+#Transaction end:
+TransactionManager.Instance.TransactionTaskDone()
+
+#Assign your output to the OUT variable.
+OUT = hiddenElems, notChanged
