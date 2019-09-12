@@ -1,0 +1,10 @@
+try:
+    errorReport = None
+except:
+    import traceback
+    errorReport = traceback.format_exc()
+
+if None == errorReport:
+    OUT = 0
+else:
+    OUT = errorReport
