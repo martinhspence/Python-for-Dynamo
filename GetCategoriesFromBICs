@@ -1,0 +1,49 @@
+import clr
+
+#Import the Revit API
+clr.AddReference('RevitAPI')
+import Autodesk
+from Autodesk.Revit.DB import *
+
+#Import generic collections
+clr.AddReference('System')
+from System.Collections.Generic import *
+
+#Import DocumentManager and TransactionManager
+clr.AddReference('RevitServices')
+import RevitServices
+from RevitServices.Persistence import DocumentManager
+from RevitServices.Transactions import TransactionManager
+
+#Reference the active Document and application
+doc = DocumentManager.Instance.CurrentDBDocument
+uiapp = DocumentManager.Instance.CurrentUIApplication
+app = uiapp.Application
+
+#TransactionManager.Instance.EnsureInTransaction(doc)
+#Create a new categorySet and insert the BuiltInCategory(s) to apply the shared parameter to
+bicNames = IN[0]
+
+bics = System.Enum.GetValues(BuiltInCategory)
+
+newbicslst = []
+
+for i in bics:
+	for j in bicNames:
+		if j == str(i):
+			newbicslst.append(i)
+
+bicLst = List[BuiltInCategory]()
+
+for cat in newbicslst:
+	bicLst.Add(cat)
+
+#cat = doc.Settings.Categories.get_Item(BuiltInCategory.OST_ProjectInformation)
+catSet = app.Create.NewCategorySet()
+for i in bicLst:
+	cat = doc.Settings.Categories.get_Item(i)
+	catSet.Insert(cat)
+
+#TransactionManager.Instance.TransactionTaskDone()
+
+OUT = catSet
