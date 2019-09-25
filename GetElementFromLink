@@ -1,0 +1,33 @@
+import clr
+
+#Import the Revit API
+clr.AddReference('RevitAPI')
+import Autodesk
+from Autodesk.Revit.DB import *
+
+#Import DocumentManager and TransactionManager
+clr.AddReference('RevitServices')
+import RevitServices
+from RevitServices.Persistence import DocumentManager
+
+#Import ToDSType(bool) extensions method
+clr.AddReference('RevitNodes')
+import Revit
+clr.ImportExtensions(Revit.Elements)
+clr.ImportExtensions(Revit.GeometryConversion)
+
+#Reference the active Document and application
+doc = DocumentManager.Instance.CurrentDBDocument
+
+fec = FilteredElementCollector(doc).OfClass(RevitLinkInstance)
+
+linkWalls = []
+
+for i in fec:
+	linkDoc = i.GetLinkDocument()
+	f = FilteredElementCollector(linkDoc).OfCategory(BuiltInCategory.OST_Walls).WhereElementIsNotElementType().ToElements()
+	for j in f:
+		linkWalls.append(j.ToDSType(True))	
+
+#Assign your output to the OUTvariable.
+OUT = linkWalls
