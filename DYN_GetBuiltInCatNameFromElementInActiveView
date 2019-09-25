@@ -1,0 +1,30 @@
+import clr, System
+clr.AddReference("RevitNodes")
+import Revit
+clr.AddReference('RevitAPI')
+from Autodesk.Revit.DB import *
+clr.AddReference("RevitServices")
+from RevitServices.Persistence import DocumentManager
+doc = DocumentManager.Instance.CurrentDBDocument
+ 
+catname = IN[0]
+
+bic = System.Enum.GetValues(BuiltInCategory)
+
+cats, bics = [], []
+for i in bic:
+    try:
+        cat = Revit.Elements.Category.ById(ElementId(i).IntegerValue)
+        cats.append(cat)
+        bics.append(i)
+    except:
+        pass
+ 
+res = []
+
+for i, b in zip(cats, bics):
+	for n in catname:
+		if n == str(i):
+			res.append(b)
+	
+OUT = res
