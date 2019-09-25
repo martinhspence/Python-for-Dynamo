@@ -1,0 +1,36 @@
+#Python script template for Dynamo 1.x
+#By Martin Spence (martinspence84@gmail.com)
+
+import clr
+clr.AddReference('ProtoGeometry')
+from Autodesk.DesignScript.Geometry import *
+clr.AddReference('RevitAPI')
+from Autodesk.Revit.DB import *
+clr.AddReference('RevitServices')
+import RevitServices
+from RevitServices.Persistence import DocumentManager
+from RevitServices.Transactions import TransactionManager
+
+doc = DocumentManager.Instance.CurrentDBDocument
+
+allPatterns = FilteredElementCollector(doc).OfClass(LinePatternElement)
+
+pNames = []
+pIds = []
+
+for name in allPatterns:
+	if 'IMPORT' in name.Name:
+		pNames.append(name.Name)
+		pIds.append(name.Id)
+
+TransactionManager.Instance.EnsureInTransaction(doc)
+deletedPatterns = []
+for ids in pIds:
+	try:
+		deletedPatterns.append(doc.Delete(ids))
+	except:
+		deletedPatterns.append('Pattern could not be deleted')
+
+TransactionManager.Instance.TransactionTaskDone()		
+	
+OUT = deletedPatterns
