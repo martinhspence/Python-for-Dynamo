@@ -1,0 +1,27 @@
+import clr
+
+#Import the Revit API
+clr.AddReference('RevitAPI')
+import Autodesk
+from Autodesk.Revit.DB import *
+
+#import Systems.Collections.Generic wich contains the .NET dictionary object
+import System.Collections.Generic
+
+#Create a .NET dictionary with a [string, element] pairing
+dictionary = System.Collections.Generic.Dictionary[System.String, System.Object]()
+
+#input keys, in this case the elevation of levels in the project
+k = IN[0] 
+
+#input values, in this case, the Level elements in the project
+v = UnwrapElement(IN[1])
+
+#Create a Python dictionary
+d = dict(zip(k,v))
+
+#Iterate the keys in the Python dictionary
+for key in d:
+	dictionary.Add(str(key), d[key]) #The keys must be strings in this .NET version of the dictionary object
+
+OUT = dictionary
