@@ -1,0 +1,32 @@
+import clr
+
+#Import the Revit API
+clr.AddReference('RevitAPI')
+import Autodesk
+from Autodesk.Revit.DB import *
+
+#Import DocumentManager and TransactionManager
+clr.AddReference('RevitServices')
+import RevitServices
+from RevitServices.Persistence import DocumentManager
+
+#Reference the active Document and application
+doc = DocumentManager.Instance.CurrentDBDocument
+
+#Start scripting here:
+
+if IN[0]:
+	fec = FilteredWorksetCollector(doc).OfKind(WorksetKind.UserWorkset).ToWorksetIds()
+
+	wsids = []
+
+	for i in fec:
+		wsids.append(doc.GetWorksetTable().GetWorkset(i))
+	
+	names = []
+	for i in wsids:
+		names.append(i.Name)
+		
+	OUT = fec, names
+else:
+	OUT = 'Set Boolean toggle to True'
