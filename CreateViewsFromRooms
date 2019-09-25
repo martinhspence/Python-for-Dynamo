@@ -1,0 +1,66 @@
+import clr
+
+clr.AddReference('RevitNodes')
+import Revit
+clr.ImportExtensions(Revit.Elements)
+
+clr.AddReference('RevitAPI')
+import Autodesk
+from Autodesk.Revit.DB import *
+
+clr.AddReference('RevitServices')
+from RevitServices.Persistence import DocumentManager
+from RevitServices.Transactions import TransactionManager
+
+doc = DocumentManager.Instance.CurrentDBDocument
+
+bool = IN[0]
+view = UnwrapElement(IN[1])
+
+output = []
+
+if bool:
+	
+	filter = Architecture.RoomFilter()
+	col = FilteredElementCollector(doc, view.Id).WherePasses(filter).ToElements()
+	
+	TransactionManager.Instance.EnsureInTransaction(doc)
+	
+	for room in col:
+		#Get parameters to create view
+		viewTypeId = view.GetTypeId()
+		levelId = room.LevelId
+		#Create method
+		roomView = ViewPlan.Create(doc, viewTypeId, levelId)
+		
+		#Get bounding box 
+		roomBB = room.get_BoundingBox(view)
+		rMax = roomBB.Max
+		rMin = roomBB.Min
+		#set new min and max
+		newMaxP = XYZ(rMax.X + 1, rMax.Y + 1, rMax.Z)
+		newMinP = XYZ(rMin.X - 1, rMin.Y - 1, rMin.Z)
+		
+		#new BB
+		newBB = BoundingBoxXYZ()
+		newBB.Max = newMaxP
+		newBB.Min = newMinP
+		
+		#Set the crop after the new bounding box
+		roomView.CropBoxActive = True
+		roomView.CropBox = newBB
+		
+		#Set names of the new views
+		roomView.ViewName = room.LookupParameter('Name').AsString() + '_' + 'Scripted'
+		
+		output.append(roomView.ToDSType(True))
+		
+	TransactionManager.Instance.TransactionTaskDone()
+	
+
+
+else:
+
+	output.append('Set bool to True')
+	
+OUT = output
