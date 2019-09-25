@@ -1,0 +1,61 @@
+#By Martin Spence (martinspence84@gmail.com)
+import clr
+
+clr.AddReference('ProtoGeometry')
+from Autodesk.DesignScript.Geometry import *
+
+#Import the Revit API
+clr.AddReference('RevitAPI')
+import Autodesk
+from Autodesk.Revit.DB import *
+from Autodesk.Revit.DB.Electrical import *
+
+#Import DocumentManager and TransactionManager
+clr.AddReference('RevitServices')
+import RevitServices
+from RevitServices.Persistence import DocumentManager
+from RevitServices.Transactions import TransactionManager
+
+#Import ToDSType(bool) extensions method
+clr.AddReference('RevitNodes')
+import Revit
+clr.ImportExtensions(Revit.Elements)
+clr.ImportExtensions(Revit.GeometryConversion)
+
+#Reference the active Document and application
+doc = DocumentManager.Instance.CurrentDBDocument
+
+ct = UnwrapElement(IN[0]) #Input is cable tray type
+levels = [UnwrapElement(i) for i in IN[1]] #Input are levels 
+crvsin = IN[2] #Input are curves 
+
+crvs = []
+#Turn Dynamo curves into revit curves
+for i in crvsin:
+	temp = []
+	for j in i:
+		temp.append(j.ToRevitType())
+	crvs.append(temp)
+
+#Start scripting here:
+cabletrays = []
+#Transaction start:
+TransactionManager.Instance.EnsureInTransaction(doc)
+#Iterate through list of levels and curves to create the right cabletrays at the right levels
+for x,y in zip(levels, crvs):
+	#Iterate through the curves to get start and endpoints
+	for i in y:
+		
+		stpt = i.GetEndPoint(0)
+		endpt = i.GetEndPoint(1)
+        #Use the create method from the Electrical namespace to create the cable tray with the inputs found.
+        #Use the .ToDSType(False) method, since the trays are Revit owned, i.e. created in the script.
+		newcabletray = Autodesk.Revit.DB.Electrical.CableTray.Create(doc, ct.Id, stpt, endpt, x.Id).ToDSType(False)
+
+		cabletrays.append(newcabletray)
+
+#Transaction end:
+TransactionManager.Instance.TransactionTaskDone()
+
+#Assign your output to the OUT variable.
+OUT = cabletrays
