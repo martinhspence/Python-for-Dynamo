@@ -1,0 +1,47 @@
+# Enable Python support and load DesignScript library
+import clr
+clr.AddReference('ProtoGeometry')
+from Autodesk.DesignScript.Geometry import *
+
+# The inputs to this node will be stored as a list in the IN variables.
+dataEnteringNode = IN
+
+surface = IN[0]
+uDiv = IN[1]
+vDiv = IN[2]
+
+# Place your code below this line
+def QuadDivision(srf, udiv, vdiv):
+    panels = []
+    polys = []
+    quads = []
+
+    ustep = 1.0/udiv
+    vstep = 1.0/vdiv
+    for i in range(0,int(udiv)):
+        for j in range(0,int(vdiv)):
+            quad = []
+            #XYZ Quads
+            myXYZA = srf.PointAtParameter(i*ustep, j*vstep)
+            myXYZB = srf.PointAtParameter((i+1)*ustep,j*vstep)
+            myXYZC = srf.PointAtParameter((i+1)*ustep,(j+1)*vstep)
+            myXYZD = srf.PointAtParameter(i*ustep,(j+1)*vstep)
+            #Append to quad
+            quad.append(myXYZA)
+            quad.append(myXYZB)
+            quad.append(myXYZC)
+            quad.append(myXYZD)
+            #Append quads
+            quads.append(quad)
+                
+    return quads
+"""                
+#polygons
+poly = Polygon.ByPoints(quad)
+polys.append(poly)
+#panels
+panel = Surface.ByPerimeterPoints(quad)
+panels.append(panel)
+""" 
+# Assign your output to the OUT variable.
+OUT = QuadDivision(surface, uDiv, vDiv)
