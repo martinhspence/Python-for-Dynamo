@@ -1,0 +1,29 @@
+import clr
+
+#Import the Revit API
+clr.AddReference('RevitAPI')
+import Autodesk
+from Autodesk.Revit.DB import *
+
+#Import generic collections
+clr.AddReference('System')
+from System.Collections.Generic import *
+
+#Import DocumentManager and TransactionManager
+clr.AddReference('RevitServices')
+import RevitServices
+from RevitServices.Persistence import DocumentManager
+
+#Reference the active Document and application
+doc = DocumentManager.Instance.CurrentDBDocument
+
+bics = List[BuiltInCategory]()
+
+bics.Add(BuiltInCategory.OST_CableTrayFitting)
+bics.Add(BuiltInCategory.OST_ConduitFitting)
+
+filter = ElementMulticategoryFilter(bics)
+
+fec = FilteredElementCollector(doc).WherePasses(filter).WhereElementIsNotElementType().ToElements()
+
+OUT = fec
