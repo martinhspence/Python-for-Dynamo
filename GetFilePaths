@@ -1,0 +1,15 @@
+import clr
+import sys
+sys.path.append(r'C:\Program Files (x86)\IronPython 2.7\Lib')
+import os
+import os.path
+
+path = IN[0]
+
+lst = []
+
+for dirpath, dirnames, filenames in os.walk(path):
+	for filename in [f for f in filenames if f.endswith('.rfa')]:
+		lst.append(os.path.join(dirpath, filename))
+
+OUT = lst
