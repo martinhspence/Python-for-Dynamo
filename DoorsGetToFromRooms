@@ -1,0 +1,38 @@
+import clr
+clr.AddReference('RevitAPI')
+import Autodesk
+from Autodesk.Revit.DB import *
+
+clr.AddReference('RevitServices')
+from RevitServices.Persistence import DocumentManager
+from RevitServices.Transactions import TransactionManager
+
+doc = DocumentManager.Instance.CurrentDBDocument
+
+doors = FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Doors).WhereElementIsNotElementType().ToElements()
+
+bool = IN[0]
+
+output = []
+
+if bool:
+	for i in doors:
+		toRoom = []
+		fromRoom = []
+		
+		if i.get_ToRoom(doc.GetElement(i.CreatedPhaseId)) != None:
+			toRoom.append(i.get_ToRoom(doc.GetElement(i.CreatedPhaseId)))
+		else:
+			toRoom.append('no toRoom')
+			
+		if i.get_FromRoom(doc.GetElement(i.CreatedPhaseId)) != None:
+ 			fromRoom.append(i.get_FromRoom(doc.GetElement(i.CreatedPhaseId)))
+ 		else:
+ 			fromRoom.append('no fromRoom')
+ 			
+		output.append([toRoom, fromRoom])
+		
+else:
+	output.append('set bool to true')
+
+OUT = output
