@@ -1,0 +1,53 @@
+import clr
+
+clr.AddReference('ProtoGeometry')
+from Autodesk.DesignScript import Geometry as geom
+
+clr.AddReference("RevitNodes")
+import Revit
+clr.ImportExtensions(Revit.Elements)
+clr.ImportExtensions(Revit.GeometryConversion)
+
+clr.AddReference("RevitAPI")
+from Autodesk.Revit.DB import *
+
+###### Definitions ######
+
+# Ensure object is a list and iterable...
+def tolist(obj1):
+	if hasattr(obj1,"__iter__"): return obj1
+	else: return [obj1]
+
+# Create a coordinate system from the Element Transform...
+def CreateCoordinateSystem(t):
+	return geom.CoordinateSystem.ByOriginVectors(t.Origin.ToPoint(),t.BasisX.ToVector(),t.BasisY.ToVector(),t.BasisZ.ToVector())
+
+# Create graphical Axes for visualisation purposes...
+def VisualiseAxes(t,l):
+	o = t.Origin.ToPoint()
+	
+	xAxis = geom.Line.ByStartPointDirectionLength(o,t.BasisX.ToVector(),l)
+	yAxis = geom.Line.ByStartPointDirectionLength(o,t.BasisY.ToVector(),l)
+	zAxis = geom.Line.ByStartPointDirectionLength(o,t.BasisZ.ToVector(),l)
+	
+	return xAxis,yAxis,zAxis
+
+###### Inputs ######
+
+elems = tolist(UnwrapElement(IN[0])) # The Elements
+l = tolist(IN[1])[0] # The length of the Axes for visualisation
+
+###### Outputs ######
+
+cSystems = []
+vGeom = []
+
+###### Main Script ######
+
+for e in elems:
+	t = e.GetTransform()
+	cSystems.append(CreateCoordinateSystem(t))
+	vGeom.append(VisualiseAxes(t,l))
+
+# Return the results to the user...
+OUT = cSystems,vGeom
