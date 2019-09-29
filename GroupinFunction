@@ -1,0 +1,5 @@
+def subs(lst):
+	sublists = []
+	for i in set(lst):
+		sublists.append([i]*lst.count(i))
+	return sublists
