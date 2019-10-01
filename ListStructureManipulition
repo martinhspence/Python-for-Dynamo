@@ -1,0 +1,18 @@
+#input is a flat list: [5,6,7,8]
+#the output is a list of sets where consecutive numbers are included in both sublists: [[5,6],[6,7],[7,8],[8,5]]
+
+lst = IN[0]
+
+result = []
+
+i = 0
+aux = []
+
+for e in lst:
+  if e == lst[-1]
+    result.append([lst[-1], lst[0]])
+  else:
+    result.append(lst[i:i+2])
+  i +=1
+  
+OUT = result
