@@ -1,0 +1,46 @@
+import clr
+
+#Import the Revit API
+clr.AddReference('RevitAPI')
+import Autodesk
+from Autodesk.Revit.DB import *
+
+#Import DocumentManager and TransactionManager
+clr.AddReference('RevitServices')
+import RevitServices
+from RevitServices.Persistence import DocumentManager
+
+#Reference the active Document and application
+doc = DocumentManager.Instance.CurrentDBDocument
+
+-----------------------------
+"""
+This script was used to determine whether a radiator was placed up against a normal wall or a curtain wall.
+"""
+
+#---###Start scripting here:###---#
+elem = UnwrapElement(IN[0])
+
+locp = [i.Location.Point for i in elem]
+fVec = [i.FacingOrientation for i in elem]
+pVec = []
+
+for i, j in zip(fVec, locp):
+	translate = i.Multiply(150)
+	addToLoc = j.Add(translate)
+	actualVector = addToLoc.Subtract(j)
+	pVec.append(actualVector.Multiply(0.00328))
+	
+output = []
+for x,y in zip(locp, pVec):
+	filter = ElementCategoryFilter(BuiltInCategory.OST_Walls)
+	refI = ReferenceIntersector(filter, FindReferenceTarget.Element, doc.ActiveView)
+	refI.FindReferencesInRevitLinks = True
+	refC = refI.FindNearest(x,y)
+	if refC != None: #It seems that Curtain Walls will return a None value when attempted to get the reference. 
+		refL = refC.GetReference()
+		output.append(refL.LinkedElementId)
+	else:
+		output.append('CurtainWall')
+
+OUT = temp
