@@ -1,0 +1,33 @@
+import clr
+
+#Import the Revit API
+clr.AddReference('RevitAPI')
+import Autodesk
+from Autodesk.Revit.DB import *
+
+#Import DocumentManager and TransactionManager
+clr.AddReference('RevitServices')
+import RevitServices
+from RevitServices.Persistence import DocumentManager
+
+#Reference the active Document and application
+doc = DocumentManager.Instance.CurrentDBDocument
+
+#---###Start scripting here:###---#
+elem = UnwrapElement(IN[0])
+
+loc = [i.Location.Point for i in elem]
+ray = XYZ(0,1,0)
+
+filter = ElementCategoryFilter(BuiltInCategory.OST_Walls)
+
+dist = []
+
+for i in loc:
+	refI = ReferenceIntersector(filter, FindReferenceTarget.Face, doc.ActiveView)
+	refC = refI.FindNearest(i, ray)
+	reference = refC.GetReference()
+	intersect = reference.GlobalPoint
+	dist.append(UnitUtils.ConvertFromInternalUnits(i.DistanceTo(intersect), DisplayUnitType.DUT_MILLIMETERS))
+
+OUT = dist
