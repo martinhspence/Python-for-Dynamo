@@ -1,0 +1,58 @@
+import clr
+
+#Import the Revit API
+clr.AddReference('RevitAPI')
+import Autodesk
+from Autodesk.Revit.DB import *
+
+#Import DocumentManager and TransactionManager
+clr.AddReference('RevitServices')
+import RevitServices
+from RevitServices.Persistence import DocumentManager
+from RevitServices.Transactions import TransactionManager
+
+#Reference the active Document and application
+doc = DocumentManager.Instance.CurrentDBDocument
+
+#---###Start scripting here:###---#
+element = UnwrapElement(IN[0])
+dist = IN[1]
+
+#Prepare the new location by adding the translation to the current location
+#The current location
+locp = [i.Location.Point for i in element]
+oVec = [i.FacingOrientation for i in element]
+#Multiply the distance to move with the vector and add that to the current location 
+newVector = []
+for i,j in zip(oVec, locp):
+	translate = i.Multiply(dist) #Use the Multiply() method to translate the facing orientation vector with the distance
+	addToLoc = j.Add(translate) #Use the Add() method to add the translation to the locationPoint
+	actualVector = addToLoc.Subtract(j) #To get the actual translation, use the Subtract() method to subtract the original location from the new calculated one.
+	reversed = actualVector.Multiply(-1)
+	newVector.append(reversed.Multiply(0.00328)) #Convert the vectorvalues to internal units, and append them
+
+#Get the ids of the elements that is to be moved
+eleIds = [i.Id for i in element]
+
+#Use the MoveElement() method from the ElementTransformUtils class to move the elements
+#Transaction start:
+output = []
+TransactionManager.Instance.EnsureInTransaction(doc)
+for x,y in zip(eleIds, newVector):
+	try:
+		errorReport = None
+		ElementTransformUtils.MoveElement(doc, x, y)
+		output.append('Element was successfully moved')
+	except:
+		import tranceback
+		errorReport = traceback.format_exc()
+
+#Transaction end:
+TransactionManager.Instance.TransactionTaskDone()
+
+if None == errorReport:
+    OUT = output
+else:
+    OUT = errorReport
+
+#OUT = newVector
