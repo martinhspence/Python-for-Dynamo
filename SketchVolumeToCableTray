@@ -1,0 +1,79 @@
+#By Martin Spence (martinspence84@gmail.com)
+import clr
+import System
+import sys
+
+sys.path.append(r'C:\Program Files (x86)\IronPython 2.7\Lib')
+
+clr.AddReference('ProtoGeometry')
+from Autodesk.DesignScript.Geometry import *
+
+#Import the Revit API
+clr.AddReference('RevitAPI')
+import Autodesk
+from Autodesk.Revit.DB import *
+from Autodesk.Revit.DB.Electrical import *
+
+#Import generic collections
+clr.AddReference('System')
+from System.Collections.Generic import *
+
+#Import DocumentManager and TransactionManager
+clr.AddReference('RevitServices')
+import RevitServices
+from RevitServices.Persistence import DocumentManager
+from RevitServices.Transactions import TransactionManager
+
+#Import ToDSType(bool) extensions method
+clr.AddReference('RevitNodes')
+import Revit
+clr.ImportExtensions(Revit.Elements)
+clr.ImportExtensions(Revit.GeometryConversion)
+
+#Reference the active Document and application
+doc = DocumentManager.Instance.CurrentDBDocument
+uiapp = DocumentManager.Instance.CurrentUIApplication
+app = uiapp.Application
+
+ct = UnwrapElement(IN[0])
+levels = UnwrapElement(IN[1])
+crvsin = IN[2]
+
+crvs = []
+
+for i in crvsin:
+	temp = []
+	for j in i:
+		temp.append(j.ToRevitType())
+	crvs.append(temp)
+
+#Start scripting here:
+cabletrays = []
+
+#Regenerate the document
+TransactionManager.Instance.ForceCloseTransaction()
+
+with Transaction(doc, 'Create trays') as t1: #https://forum.dynamobim.com/t/name-a-transaction/23990/12
+	t1.Start()
+	for x,y in zip(levels, crvs):
+		temp = []
+		for i in y:
+			stpt = i.GetEndPoint(0)
+			endpt = i.GetEndPoint(1)
+			newcabletray = Autodesk.Revit.DB.Electrical.CableTray.Create(doc, ct.Id, stpt, endpt, x.Id)#.ToDSType(False)
+			temp.append(newcabletray)			
+		cabletrays.append(temp)	
+	doc.Regenerate()
+	t1.Commit()
+
+with Transaction(doc, 'Set Dims') as t2:
+	t2.Start()
+	for i in cabletrays:
+		for j in i:
+			p1 = j.LookupParameter('Width')
+			p1.Set(UnitUtils.ConvertToInternalUnits(600, DisplayUnitType.DUT_MILLIMETERS))			
+			p2 = j.LookupParameter('Height')
+			p2.Set(UnitUtils.ConvertToInternalUnits(50, DisplayUnitType.DUT_MILLIMETERS))
+	t2.Commit()
+#Assign your output to the OUT variable.
+OUT = cabletrays
