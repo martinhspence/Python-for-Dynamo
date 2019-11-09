@@ -1,1 +1,27 @@
+#Code snippet from the script 'SketchObjectsToCableTrays'
+TransactionManager.Instance.ForceCloseTransaction()
 
+with Transaction(doc, 'Create trays') as t1: #https://forum.dynamobim.com/t/name-a-transaction/23990/12
+	t1.Start()
+	for x,y in zip(levels, crvs):
+		temp = []
+		for i in y:
+			stpt = i.GetEndPoint(0)
+			endpt = i.GetEndPoint(1)
+			newcabletray = Autodesk.Revit.DB.Electrical.CableTray.Create(doc, ct.Id, stpt, endpt, x.Id)#.ToDSType(False)
+			temp.append(newcabletray)			
+		cabletrays.append(temp)	
+	doc.Regenerate()
+	t1.Commit()
+
+with Transaction(doc, 'Set Dims') as t2:
+	t2.Start()
+	for i in cabletrays:
+		for j in i:
+			p1 = j.LookupParameter('Width')
+			p1.Set(UnitUtils.ConvertToInternalUnits(600, DisplayUnitType.DUT_MILLIMETERS))			
+			p2 = j.LookupParameter('Height')
+			p2.Set(UnitUtils.ConvertToInternalUnits(50, DisplayUnitType.DUT_MILLIMETERS))
+	t2.Commit()
+#Assign your output to the OUT variable.
+OUT = cabletrays
