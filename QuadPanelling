@@ -1,3 +1,4 @@
+# Def from a class created by Nathan Miller/Proving Ground
 # Enable Python support and load DesignScript library
 import clr
 clr.AddReference('ProtoGeometry')
