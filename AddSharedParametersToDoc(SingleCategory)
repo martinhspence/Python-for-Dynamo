@@ -1,0 +1,54 @@
+import clr
+
+#Import the Revit API
+clr.AddReference('RevitAPI')
+import Autodesk
+from Autodesk.Revit.DB import *
+
+#Import DocumentManager and TransactionManager
+clr.AddReference('RevitServices')
+import RevitServices
+from RevitServices.Persistence import DocumentManager
+from RevitServices.Transactions import TransactionManager
+
+#Reference the active Document and application
+doc = DocumentManager.Instance.CurrentDBDocument
+uiapp = DocumentManager.Instance.CurrentUIApplication
+app = uiapp.Application
+
+groupName = IN[0]
+bipg = UnwrapElement(IN[1])
+"""
+This python script was created to automate the adding of the 13 new shared parameters
+created for the OJAS TitleBlock used as a starting view.
+"""
+
+#Create a new categorySet and insert the BuiltInCategory(s) to apply the shared parameter to
+cat = doc.Settings.Categories.get_Item(BuiltInCategory.OST_ProjectInformation)
+catSet = app.Create.NewCategorySet()
+catSet.Insert(cat)
+
+#Open the active shared parameter file
+spFile = app.OpenSharedParameterFile()
+
+output = []
+
+#Iterate through the groups in the spFile and get the one holdind the params to add
+for i in spFile.Groups:
+	if i.Name == groupName:
+		defins = i.Definitions #This accesses the parameter definitions (external definitions)
+		
+		TransactionManager.Instance.EnsureInTransaction(doc)
+		#Iterate the definitions and create a new Instance Binding and following with the
+		#ParameterBinding
+		for d in defins:
+			try:
+				newIB = app.Create.NewInstanceBinding(catSet)
+				doc.ParameterBindings.Insert(d, newIB, bipg)
+				output.append('Paramater was added successfully!')
+			except:
+				output.append('Adding parameters failed')
+
+		TransactionManager.Instance.TransactionTaskDone()
+
+OUT = output
