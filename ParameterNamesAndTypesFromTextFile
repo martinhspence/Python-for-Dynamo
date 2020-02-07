@@ -1,0 +1,41 @@
+import clr
+
+#Import the Revit API
+clr.AddReference('RevitAPI')
+import Autodesk
+from Autodesk.Revit.DB import *
+
+#Import DocumentManager and TransactionManager
+clr.AddReference('RevitServices')
+import RevitServices
+from RevitServices.Persistence import DocumentManager
+from RevitServices.Transactions import TransactionManager
+
+#Reference the active Document and application
+doc = DocumentManager.Instance.CurrentDBDocument
+uiapp = DocumentManager.Instance.CurrentUIApplication
+app = uiapp.Application
+
+#---###Start scripting here:###---#
+
+#Open the active shared parameter file
+spFile = app.OpenSharedParameterFile()
+groups = spFile.Groups
+
+group_names = []
+definitions = []
+for i in groups:
+	definitions.append(i.Definitions)
+	group_names.append(i.Name)
+
+param_names, param_types = [], []
+for x,y in zip(group_names, definitions):
+	temp1 = []
+	temp2 = []
+	for i in y:
+		temp1.append(i.Name)
+		temp2.append(i.ParameterType)
+	param_names.append(temp1)
+	param_types.append(temp2)
+	
+OUT = param_names, param_types
