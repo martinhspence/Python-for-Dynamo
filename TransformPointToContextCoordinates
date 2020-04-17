@@ -4,7 +4,8 @@
 # and therefore I decided to look for an alternative way to place real world coordinates in objects. 
 # This was specifically used for writing coordinates into pile elements, for the contractor to use.
 
-# atm this is set up to be used with a single item. I will update when I've prepared it to work with multiple items.
+# atm this is set up to be used with a single item. I will update when I've prepared it to work with multiple items, 
+# or it can be wrapped in a costum node, and then utilize Dynamos lacing options. 
 
 import clr
 
