@@ -1,0 +1,53 @@
+# This code snippet was translated from Jeremy Tammicks blog
+# Link: (https://thebuildingcoder.typepad.com/blog/2012/06/real-world-concrete-corner-coordinates.html)
+# I found out that Dynamos geometry translation struggles with coordinates at large distances, 
+# and therefore I decided to look for an alternative way to place real world coordinates in objects. 
+# This was specifically used for writing coordinates into pile elements, for the contractor to use. 
+
+import clr
+
+#Import the Revit API
+clr.AddReference('RevitAPI')
+import Autodesk
+from Autodesk.Revit.DB import *
+
+#Import DocumentManager and TransactionManager
+clr.AddReference('RevitServices')
+import RevitServices
+from RevitServices.Persistence import DocumentManager
+from RevitServices.Transactions import TransactionManager
+
+#Reference the active Document and application
+doc = DocumentManager.Instance.CurrentDBDocument
+
+# input piles
+col = UnwrapElement(IN[0])
+
+# get pile location
+loc = col.Location.Point
+
+# get the active project location position
+origin = XYZ(0,0,0)
+pp = doc.ActiveProjectLocation.GetProjectPosition(origin)
+
+# create a translation vector for the offsets
+translationVector = XYZ(pp.EastWest, pp.NorthSouth, pp.Elevation)
+
+# create a Transform object from the translation vector
+translationTransform = Transform.CreateTranslation(translationVector)
+
+# create a rotation for the angle about true north
+rotationTransform = Transform.CreateRotationAtPoint(origin.BasisZ, pp.Angle, origin)
+
+# combine the transforms
+finalTransform = translationTransform.Multiply(rotationTransform)
+
+# apply the transform to the pile location point
+projectLocationTransform = finalTransform.OfPoint(loc)
+
+new_plt_x = UnitUtils.ConvertFromInternalUnits(projectLocationTransform.X, DisplayUnitType.DUT_MILLIMETERS)
+new_plt_y = UnitUtils.ConvertFromInternalUnits(projectLocationTransform.Y, DisplayUnitType.DUT_MILLIMETERS)
+
+final_pt = UV(round(new_plt_x), round(new_plt_y))
+
+OUT = final_pt
