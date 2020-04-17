@@ -2,7 +2,9 @@
 # Link: (https://thebuildingcoder.typepad.com/blog/2012/06/real-world-concrete-corner-coordinates.html)
 # I found out that Dynamos geometry translation struggles with coordinates at large distances, 
 # and therefore I decided to look for an alternative way to place real world coordinates in objects. 
-# This was specifically used for writing coordinates into pile elements, for the contractor to use. 
+# This was specifically used for writing coordinates into pile elements, for the contractor to use.
+
+# atm this is set up to be used with a single item. I will update when I've prepared it to work with multiple items.
 
 import clr
 
@@ -45,9 +47,12 @@ finalTransform = translationTransform.Multiply(rotationTransform)
 # apply the transform to the pile location point
 projectLocationTransform = finalTransform.OfPoint(loc)
 
+# convert the values to mm using the UnitUtils Class
 new_plt_x = UnitUtils.ConvertFromInternalUnits(projectLocationTransform.X, DisplayUnitType.DUT_MILLIMETERS)
 new_plt_y = UnitUtils.ConvertFromInternalUnits(projectLocationTransform.Y, DisplayUnitType.DUT_MILLIMETERS)
 
+# I'm only interested in the x,y values, so i create a UV instead of an XYZ
 final_pt = UV(round(new_plt_x), round(new_plt_y))
 
+# output the value and write it to a parameter
 OUT = final_pt
