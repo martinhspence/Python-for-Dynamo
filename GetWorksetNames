@@ -17,16 +17,12 @@ doc = DocumentManager.Instance.CurrentDBDocument
 
 if IN[0]:
 	fec = FilteredWorksetCollector(doc).OfKind(WorksetKind.UserWorkset).ToWorksetIds()
-
 	wsids = []
-
 	for i in fec:
 		wsids.append(doc.GetWorksetTable().GetWorkset(i))
-	
 	names = []
 	for i in wsids:
 		names.append(i.Name)
-		
 	OUT = fec, names
 else:
 	OUT = 'Set Boolean toggle to True'
