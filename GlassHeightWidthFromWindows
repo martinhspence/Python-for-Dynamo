@@ -1,0 +1,76 @@
+import clr
+import System
+import sys
+
+sys.path.append(r'C:\Program Files (x86)\IronPython 2.7\Lib')
+
+clr.AddReference('ProtoGeometry')
+from Autodesk.DesignScript.Geometry import *
+
+#Import the Revit API
+clr.AddReference('RevitAPI')
+import Autodesk
+from Autodesk.Revit.DB import *
+
+#Import generic collections
+clr.AddReference('System')
+from System.Collections.Generic import *
+
+#Import DocumentManager and TransactionManager
+clr.AddReference('RevitServices')
+import RevitServices
+from RevitServices.Persistence import DocumentManager
+from RevitServices.Transactions import TransactionManager
+
+#Import ToDSType(bool) extensions method
+clr.AddReference('RevitNodes')
+import Revit
+clr.ImportExtensions(Revit.Elements)
+clr.ImportExtensions(Revit.GeometryConversion)
+
+#Reference the active Document and application
+doc = DocumentManager.Instance.CurrentDBDocument
+uiapp = DocumentManager.Instance.CurrentUIApplication
+app = uiapp.Application
+
+def convertUnits(x):
+	return UnitUtils.ConvertFromInternalUnits(x, DisplayUnitType.DUT_MILLIMETERS)
+
+def glassLengths(elem):
+	outlst = []
+	windowGeom = elem.get_Geometry(opts)
+	for i in windowGeom:
+		solid = i.SymbolGeometry
+		for j in solid:
+			gid = j.GraphicsStyleId
+			gs = doc.GetElement(gid)
+			if gs != None:
+				if 'Glass' in gs.GraphicsStyleCategory.Name:
+					face = j.Faces[0]
+					loop = face.EdgeLoops
+					for lo in loop:
+						for l in lo:
+							curves = l.AsCurve()
+							length = curves.Length
+							outlst.append(convertUnits(length))
+	return outlst
+
+windows = UnwrapElement(IN[0])
+
+opts = Options()
+opts.ComputeReferences = True
+opts.DetailLevel = ViewDetailLevel.Fine
+
+output = []
+glassHeight = []
+glassWidth = []
+
+for i in windows:
+	temp = []
+	lengths = glassLengths(i)
+	for j in lengths:
+		temp.append(j)
+	glassHeight.append(temp[0])
+	glassWidth.append(temp[1])
+
+OUT = glassHeight, glassWidth
