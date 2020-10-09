@@ -53,6 +53,9 @@ def glassLengths(elem):
 							curves = l.AsCurve()
 							length = curves.Length
 							outlst.append(convertUnits(length))
+				else:
+					pass
+					
 	return outlst
 
 windows = UnwrapElement(IN[0])
