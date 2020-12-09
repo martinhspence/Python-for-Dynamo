@@ -1,0 +1,20 @@
+import re
+data = IN[0]
+
+newstr = []
+
+for i in data:
+	i = re.sub('[ -]', '', i)
+	newstr.append(i)
+
+#The characters enclosed in brackets constitute a character class. Any characters in line which are in that class are replaced with the second parameter to sub: an empty string.
+
+output = []
+
+for i in newstr:
+	if len(i) == 0:
+		output.append(False)
+	else:
+		output.append(i)
+	
+OUT = output
